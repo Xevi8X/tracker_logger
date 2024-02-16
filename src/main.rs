@@ -21,7 +21,7 @@ async fn handle_post(location_id: web::Path<String>, payload: String) -> impl Re
         return HttpResponse::InternalServerError().body(format!("Failed to write to file: {}", e));
     }
 
-    HttpResponse::Ok().body("Request logged successfully")
+    HttpResponse::Ok().into()
 }
 
 #[actix_web::main]
@@ -30,7 +30,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .route("/location/{id}", web::post().to(handle_post))
     })
-    .bind("127.0.0.1:3333")?
+    .bind("0.0.0.0:3333")?
     .run()
     .await
 }
