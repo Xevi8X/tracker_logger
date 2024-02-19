@@ -1,6 +1,6 @@
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
-use std::fs::OpenOptions;
-use std::io::Write;
+use std::fs::{File, OpenOptions};
+use std::io::{Read, Write};
 use chrono::{Local, DateTime};
 
 async fn handle_post(location_id: web::Path<String>, payload: String) -> impl Responder {
@@ -24,11 +24,26 @@ async fn handle_post(location_id: web::Path<String>, payload: String) -> impl Re
     HttpResponse::Ok().into()
 }
 
+async fn handle_get(location_id: web::Path<String>) -> impl Responder {
+    let file_name = format!("logs/{}.log", location_id);
+
+    if let Ok(mut file) = File::open(&file_name) {
+        let mut file_content = String::new();
+        if let Err(e) = file.read_to_string(&mut file_content) {
+            return HttpResponse::InternalServerError().body(format!("Failed to read file: {}", e));
+        }
+        HttpResponse::Ok().body(file_content)
+    } else {
+        HttpResponse::NotFound().body(format!("File not found for location {}", location_id))
+    }
+}
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     HttpServer::new(|| {
         App::new()
             .route("/location/{id}", web::post().to(handle_post))
+            .route("/location/{id}", web::get().to(handle_get))
     })
     .bind("0.0.0.0:3333")?
     .run()
