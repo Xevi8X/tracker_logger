@@ -25,16 +25,27 @@ async fn handle_post(location_id: web::Path<String>, payload: String) -> impl Re
 }
 
 async fn handle_get(location_id: web::Path<String>) -> impl Responder {
-    let file_name = format!("logs/{}.log", location_id);
+    let id = location_id.parse::<usize>();
 
-    if let Ok(mut file) = File::open(&file_name) {
-        let mut file_content = String::new();
-        if let Err(e) = file.read_to_string(&mut file_content) {
-            return HttpResponse::InternalServerError().body(format!("Failed to read file: {}", e));
+    if let Ok(id) = id
+    {
+        let file_name = format!("logs/{}.log", id);
+        if let Ok(mut file) = File::open(&file_name) {
+            let mut file_content = String::new();
+            if let Err(e) = file.read_to_string(&mut file_content) 
+            {
+                return HttpResponse::InternalServerError().body(format!("Failed to read file: {}", e));
+            }
+            HttpResponse::Ok().body(file_content)
+        } 
+        else 
+        {
+            HttpResponse::NotFound().body(format!("File not found for location {}", location_id))
         }
-        HttpResponse::Ok().body(file_content)
-    } else {
-        HttpResponse::NotFound().body(format!("File not found for location {}", location_id))
+    }
+    else 
+    {
+        HttpResponse::InternalServerError().into()
     }
 }
 
