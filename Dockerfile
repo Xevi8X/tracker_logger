@@ -1,20 +1,10 @@
-FROM ubuntu:latest
+FROM rust:latest as build
+ENV PKG_CONFIG_ALLOW_CROSS=1
+WORKDIR /usr/src/tracker_logger
+COPY . .
+RUN cargo install --path .
 
-ADD . /TRACKER
-
-RUN apt-get update && \
-    apt-get install -y gcc g++ make cmake  \
-    build-essential curl
-
-#Rust
-RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
-ENV PATH="/root/.cargo/bin:${PATH}"
-RUN cargo --version
-
-WORKDIR /TRACKER
-
-RUN cargo build
-
+FROM gcr.io/distroless/cc-debian12:nonroot
+COPY --from=build /usr/local/cargo/bin/tracker_logger /usr/local/bin/tracker_logger
+CMD ["tracker_logger"]
 EXPOSE 3333
-
-ENTRYPOINT ["cargo", "run"]

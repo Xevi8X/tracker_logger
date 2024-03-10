@@ -51,12 +51,14 @@ async fn handle_get(location_id: web::Path<String>) -> impl Responder {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    std::fs::create_dir_all("logs").unwrap();
+
     HttpServer::new(|| {
         App::new()
             .route("/location/{id}", web::post().to(handle_post))
             .route("/location/{id}", web::get().to(handle_get))
     })
-    .bind("0.0.0.0:3333")?
+    .bind(("0.0.0.0",3333))?
     .run()
     .await
 }

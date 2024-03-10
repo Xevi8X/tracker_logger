@@ -1,0 +1,9 @@
+version: '3'
+services:
+  tracker_logger:
+    image: xevi8x/tracker_logger
+    ports:
+      - 3333:3333
+    volumes:
+      - ./logs:/home/nonroot/logs
+    restart: always
